@@ -798,7 +798,7 @@ local function makeButton(section: any, opts: {[string]: any}): any
 		self.rect.x, self.rect.y, self.rect.w, self.rect.h = x, y, w, self._height
 		panel:SetRadius(T().CornerRadius)
 		panel:SetRect(x, y, w, self._height)
-		label.Position = Vector2.new(x + w / 2, y + (self._height - label.Size) / 2)
+		label.Position = Vector2.new(x + w / 2, y + (self._height - T().FontSize) / 2)
 	end
 	function c:ApplyTheme() refresh() end
 	function c:_setShown(v)
@@ -821,7 +821,7 @@ local function makeLabel(section: any, opts: {[string]: any}): any
 
 	function c:Layout(x, y, w)
 		self.rect.x, self.rect.y, self.rect.w, self.rect.h = x, y, w, self._height
-		label.Position = Vector2.new(x, y + (self._height - label.Size) / 2)
+		label.Position = Vector2.new(x, y + (self._height - T().FontSize) / 2)
 	end
 	function c:ApplyTheme() label.Color = T().SubText; label.Size = T().FontSize end
 	function c:_setShown(v) label.Visible = v end
@@ -890,7 +890,7 @@ local function makeToggle(section: any, opts: {[string]: any}): any
 
 	function c:Layout(x, y, w)
 		self.rect.x, self.rect.y, self.rect.w, self.rect.h = x, y, w, self._height
-		label.Position = Vector2.new(x, y + (self._height - label.Size) / 2)
+		label.Position = Vector2.new(x, y + (self._height - T().FontSize) / 2)
 		local tx = x + w - TRACK_W
 		local ty = y + (self._height - TRACK_H) / 2
 		track:SetRadius(TRACK_H / 2)
@@ -1064,12 +1064,12 @@ local function makeKeybind(section: any, opts: {[string]: any}): any
 
 	function c:Layout(x, y, w)
 		self.rect.x, self.rect.y, self.rect.w, self.rect.h = x, y, w, self._height
-		label.Position = Vector2.new(x, y + (self._height - label.Size) / 2)
+		label.Position = Vector2.new(x, y + (self._height - T().FontSize) / 2)
 		local bx = x + w - BOX_W
 		local by = y + (self._height - 20) / 2
 		box:SetRadius(T().CornerRadius)
 		box:SetRect(bx, by, BOX_W, 20)
-		keyText.Position = Vector2.new(bx + BOX_W / 2, by + (20 - keyText.Size) / 2)
+		keyText.Position = Vector2.new(bx + BOX_W / 2, by + (20 - (T().FontSize - 1)) / 2)
 	end
 	function c:ApplyTheme() refresh() end
 	function c:_setShown(v)
@@ -1127,7 +1127,7 @@ local function makeTextbox(section: any, opts: {[string]: any}): any
 		local b = c._boxRect
 		local before = c._value:sub(1, c._caret)
 		local measure = mk("Text", { Text = before, Size = th.FontSize, Font = th.Font, Visible = false })
-		local cw = measure.TextBounds.X
+		local cw = (measure.TextBounds and measure.TextBounds.X) or (#before * th.FontSize * 0.5)
 		destroyDrawing(measure)
 		local cx = b.x + 8 + cw
 		caret.From = Vector2.new(cx, b.y + 5)
@@ -1201,7 +1201,7 @@ local function makeTextbox(section: any, opts: {[string]: any}): any
 		local boxW = w
 		local boxX = x
 		if hasLabel then
-			label.Position = Vector2.new(x, y + (self._height - label.Size) / 2)
+			label.Position = Vector2.new(x, y + (self._height - T().FontSize) / 2)
 			boxW = math.min(160, w * 0.5)
 			boxX = x + w - boxW
 		end
@@ -1209,7 +1209,7 @@ local function makeTextbox(section: any, opts: {[string]: any}): any
 		c._boxRect = { x = boxX, y = by, w = boxW, h = 22 }
 		box:SetRadius(T().CornerRadius)
 		box:SetRect(boxX, by, boxW, 22)
-		fieldText.Position = Vector2.new(boxX + 8, by + (22 - fieldText.Size) / 2)
+		fieldText.Position = Vector2.new(boxX + 8, by + (22 - T().FontSize) / 2)
 		refresh()
 	end
 	function c:ApplyTheme() refresh() end
@@ -1347,7 +1347,7 @@ local function makeDropdown(section: any, opts: {[string]: any}): any
 				sText.Text = (search._value == "" and not search._focused) and "Search..." or search._value
 				sText.Color = (search._value == "") and th.SubText or th.Text
 				local before = mk("Text", { Text = search._value, Size = th.FontSize, Font = th.Font, Visible = false })
-				local cw = before.TextBounds.X
+				local cw = (before.TextBounds and before.TextBounds.X) or (#search._value * th.FontSize * 0.5)
 				destroyDrawing(before)
 				sCaret.From = Vector2.new(search.rect.x + 6 + cw, search.rect.y + 4)
 				sCaret.To = Vector2.new(search.rect.x + 6 + cw, search.rect.y + ITEM_H - 4)
@@ -1509,14 +1509,14 @@ local function makeDropdown(section: any, opts: {[string]: any}): any
 			label.Position = Vector2.new(x, y + 2)
 			fieldX, fieldW = x, w
 			-- label on top, field below within same row height: put field right side
-			label.Position = Vector2.new(x, y + (self._height - label.Size) / 2)
+			label.Position = Vector2.new(x, y + (self._height - T().FontSize) / 2)
 			fieldW = math.min(180, w * 0.55)
 			fieldX = x + w - fieldW
 		end
 		local by = y + (self._height - 22) / 2
 		field:SetRadius(T().CornerRadius)
 		field:SetRect(fieldX, by, fieldW, 22)
-		valueText.Position = Vector2.new(fieldX + 8, by + (22 - valueText.Size) / 2)
+		valueText.Position = Vector2.new(fieldX + 8, by + (22 - T().FontSize) / 2)
 		arrow.Position = Vector2.new(fieldX + fieldW - 12, by + 4)
 		c._fieldRect = { x = fieldX, y = by, w = fieldW, h = 22 }
 		hot.rect = self.rect
@@ -1788,7 +1788,7 @@ local function makeColorPicker(section: any, opts: {[string]: any}): any
 
 	function c:Layout(x, y, w)
 		self.rect.x, self.rect.y, self.rect.w, self.rect.h = x, y, w, self._height
-		label.Position = Vector2.new(x, y + (self._height - label.Size) / 2)
+		label.Position = Vector2.new(x, y + (self._height - T().FontSize) / 2)
 		local sw = 36
 		local sx = x + w - sw
 		local sy = y + (self._height - 18) / 2
@@ -2239,19 +2239,19 @@ function Window:_relayout()
 	self.titlebar:SetVisible(vis)
 	self.titleText.Color = th.Text
 	self.titleText.Size = th.FontSize + 1
-	self.titleText.Position = Vector2.new(x + 12, y + (TITLE_H - self.titleText.Size) / 2)
+	self.titleText.Position = Vector2.new(x + 12, y + (TITLE_H - (th.FontSize + 1)) / 2)
 	self.titleText.Visible = vis
 
 	-- buttons
 	local closeSize = 22
 	local cx = x + w - closeSize - 6
-	self.closeText.Position = Vector2.new(cx + closeSize/2, y + (TITLE_H - self.closeText.Size)/2)
+	self.closeText.Position = Vector2.new(cx + closeSize/2, y + (TITLE_H - (th.FontSize + 2))/2)
 	self.closeText.Visible = vis
 	self._closeHot.rect = { x = cx, y = y, w = closeSize, h = TITLE_H }
 	self._closeHot._enabled = vis
 
 	local colX = cx - closeSize
-	self.collapseText.Position = Vector2.new(colX + closeSize/2, y + (TITLE_H - self.collapseText.Size)/2 - 2)
+	self.collapseText.Position = Vector2.new(colX + closeSize/2, y + (TITLE_H - (th.FontSize + 4))/2 - 2)
 	self.collapseText.Visible = vis
 	self._collapseHot.rect = { x = colX, y = y, w = closeSize, h = TITLE_H }
 	self._collapseHot._enabled = vis
@@ -2267,14 +2267,14 @@ function Window:_relayout()
 	local tabY = y + TITLE_H
 	local tabX = x + 6
 	for _, tab in ipairs(self.tabs) do
-		local tw = math.max(60, (tab.btnText.TextBounds.X or 0) + 24)
+		local tw = math.max(60, ((tab.btnText.TextBounds and tab.btnText.TextBounds.X) or (#tab.Name * th.FontSize * 0.6)) + 24)
 		tab.btnRect.x, tab.btnRect.y, tab.btnRect.w, tab.btnRect.h = tabX, tabY + 3, tw, TABBAR_H - 6
 		tab.btnHot.rect = tab.btnRect
 		tab.btnHot._enabled = showBody
 		tab.btnPanel:SetRadius(th.CornerRadius)
 		tab.btnPanel:SetRect(tabX, tabY + 3, tw, TABBAR_H - 6)
 		tab.btnPanel:SetVisible(showBody)
-		tab.btnText.Position = Vector2.new(tabX + tw/2, tabY + 3 + (TABBAR_H - 6 - tab.btnText.Size)/2)
+		tab.btnText.Position = Vector2.new(tabX + tw/2, tabY + 3 + (TABBAR_H - 6 - th.FontSize)/2)
 		tab.btnText.Visible = showBody
 		tab:_refreshButton()
 		tabX += tw + 4
