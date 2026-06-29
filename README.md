@@ -37,8 +37,8 @@ resize handling, and leak-free `Library:Destroy()`.
 
 ## Install
 
-Drop `DrawingLibrary.luau` into your project (e.g. as a `ModuleScript`) and
-`require` it. See `example.luau` for a full working demo.
+Drop `DrawingLibrary.lua` into your project (e.g. as a `ModuleScript`) and
+`require` it. See `example.lua` for a full working demo.
 
 ```lua
 local Library = require(path.to.DrawingLibrary)
@@ -63,7 +63,7 @@ Every component handle exposes `:Set(value)`, `:Get()`, `:SetVisible(bool)` and
 
 The **full API reference** — every method, parameter type, theme property, and
 per-component example — lives in the doc comment at the top of
-[`DrawingLibrary.luau`](DrawingLibrary.luau).
+[`DrawingLibrary.lua`](DrawingLibrary.lua).
 
 ### Theming
 

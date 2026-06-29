@@ -6,7 +6,7 @@
     Repo: https://github.com/joaoswu/VexUI
 ]]
 
-local URL = "https://raw.githubusercontent.com/joaoswu/VexUI/main/DrawingLibrary.luau"
+local URL = "https://raw.githubusercontent.com/joaoswu/VexUI/main/DrawingLibrary.lua"
 local Library = loadstring(game:HttpGet(URL))()
 
 -- ── Create a window ────────────────────────────────────────────────────────
