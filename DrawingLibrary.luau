@@ -536,8 +536,10 @@ function Panel:SetRadius(r: number)
 end
 
 function Panel:SetColors(fillColor: Color3, borderColor: Color3?, fillTransparency: number?)
+	-- NOTE: in the Drawing API, Transparency is ALPHA: 1 = opaque, 0 = invisible
+	-- (the opposite of Roblox Instance.Transparency). Callers pass opacity directly.
 	self.fill.Color = fillColor
-	self.fill.Transparency = 1 - (fillTransparency or 1) -- expects opacity
+	self.fill.Transparency = fillTransparency or 1
 	for _, c in ipairs(self.corners) do
 		c.Color = fillColor
 		c.Transparency = self.fill.Transparency
@@ -2220,11 +2222,11 @@ function Window:_relayout()
 	local w, h = self.size.X, self.size.Y
 	if self._collapsed then h = TITLE_H end
 
-	-- shadow
+	-- shadow: faint layered halo (Drawing Transparency is alpha; small = subtle)
 	for i, s in ipairs(self.shadow) do
-		local spread = i * 2
+		local spread = i * 3
 		s.Color = th.WindowShadow
-		s.Transparency = 0.82 + (i - 1) * 0.03
+		s.Transparency = 0.16 - (i - 1) * 0.03
 		s.Position = Vector2.new(x - spread, y - spread + 4)
 		s.Size = Vector2.new(w + spread * 2, h + spread * 2)
 		s.Visible = vis
