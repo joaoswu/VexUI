@@ -319,36 +319,30 @@ local DEFAULT_EASE = Ease.OutCubic
 -- ---------------------------------------------------------------------------
 --  KEYCODE -> CHARACTER MAP  (for the Drawing-based textbox)
 -- ---------------------------------------------------------------------------
-local KEY_CHARS = {} :: {[Enum.KeyCode]: {string}} -- {lower, shifted}
+local KEY_CHARS = {} -- [Enum.KeyCode] = { lower, shifted }
 do
-	local function add(kc: Enum.KeyCode, lo: string, hi: string)
-		KEY_CHARS[kc] = { lo, hi }
+	-- Resolve KeyCodes by NAME and pcall-guard every lookup, so a member that
+	-- doesn't exist on a given Roblox/executor version is skipped silently
+	-- instead of aborting the whole module (older builds lack "Backquote").
+	local function add(name: string, lo: string, hi: string)
+		local ok, kc = pcall(function() return (Enum.KeyCode :: any)[name] end)
+		if ok and kc ~= nil then KEY_CHARS[kc] = { lo, hi } end
 	end
 	for i = 0, 25 do
-		local kc = (Enum.KeyCode :: any)[string.char(65 + i)] -- A..Z
-		local lo = string.char(97 + i)
-		add(kc, lo, lo:upper())
+		local ch = string.char(97 + i)               -- a..z
+		add(string.char(65 + i), ch, ch:upper())     -- KeyCode name "A".."Z"
 	end
-	local digits = {
-		[Enum.KeyCode.Zero] = {"0", ")"}, [Enum.KeyCode.One] = {"1", "!"},
-		[Enum.KeyCode.Two] = {"2", "@"}, [Enum.KeyCode.Three] = {"3", "#"},
-		[Enum.KeyCode.Four] = {"4", "$"}, [Enum.KeyCode.Five] = {"5", "%"},
-		[Enum.KeyCode.Six] = {"6", "^"}, [Enum.KeyCode.Seven] = {"7", "&"},
-		[Enum.KeyCode.Eight] = {"8", "*"}, [Enum.KeyCode.Nine] = {"9", "("},
-	}
-	for kc, pair in pairs(digits) do add(kc, pair[1], pair[2]) end
-	add(Enum.KeyCode.Space, " ", " ")
-	add(Enum.KeyCode.Minus, "-", "_")
-	add(Enum.KeyCode.Equals, "=", "+")
-	add(Enum.KeyCode.LeftBracket, "[", "{")
-	add(Enum.KeyCode.RightBracket, "]", "}")
-	add(Enum.KeyCode.BackSlash, "\\", "|")
-	add(Enum.KeyCode.Semicolon, ";", ":")
-	add(Enum.KeyCode.Quote, "'", "\"")
-	add(Enum.KeyCode.Comma, ",", "<")
-	add(Enum.KeyCode.Period, ".", ">")
-	add(Enum.KeyCode.Slash, "/", "?")
-	add(Enum.KeyCode.BackQuote, "`", "~")
+	add("Zero", "0", ")"); add("One", "1", "!"); add("Two", "2", "@")
+	add("Three", "3", "#"); add("Four", "4", "$"); add("Five", "5", "%")
+	add("Six", "6", "^"); add("Seven", "7", "&"); add("Eight", "8", "*")
+	add("Nine", "9", "(")
+	add("Space", " ", " ")
+	add("Minus", "-", "_"); add("Equals", "=", "+")
+	add("LeftBracket", "[", "{"); add("RightBracket", "]", "}")
+	add("BackSlash", "\\", "|"); add("Backslash", "\\", "|")
+	add("Semicolon", ";", ":"); add("Quote", "'", "\"")
+	add("Comma", ",", "<"); add("Period", ".", ">"); add("Slash", "/", "?")
+	add("Backquote", "`", "~"); add("BackQuote", "`", "~")
 end
 
 -- ============================================================================
