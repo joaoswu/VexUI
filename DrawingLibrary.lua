@@ -184,29 +184,32 @@ local Z = {
 -- ============================================================================
 local THEMES = {}
 
+-- "Abyss"-style steel-blue dark theme (default).
 THEMES.Dark = {
-	Background             = Color3.fromRGB(24, 25, 31),
-	Foreground             = Color3.fromRGB(34, 36, 44),
-	Accent                 = Color3.fromRGB(120, 110, 245),
-	AccentDim              = Color3.fromRGB(70, 64, 150),
-	Text                   = Color3.fromRGB(236, 237, 242),
-	SubText                = Color3.fromRGB(140, 144, 158),
-	Border                 = Color3.fromRGB(48, 50, 60),
-	Hover                  = Color3.fromRGB(44, 46, 56),
-	Active                 = Color3.fromRGB(54, 57, 70),
-	ToggleOn               = Color3.fromRGB(120, 110, 245),
-	ToggleOff              = Color3.fromRGB(60, 62, 74),
-	SliderFill             = Color3.fromRGB(120, 110, 245),
-	DropdownBackground     = Color3.fromRGB(30, 31, 39),
-	NotificationBackground = Color3.fromRGB(30, 31, 39),
+	Background             = Color3.fromRGB(13, 15, 20),
+	SectionBackground      = Color3.fromRGB(17, 20, 27),
+	Foreground             = Color3.fromRGB(20, 24, 31),
+	TitleBar               = Color3.fromRGB(16, 19, 25),
+	Accent                 = Color3.fromRGB(88, 128, 168),
+	AccentDim              = Color3.fromRGB(40, 60, 84),
+	Text                   = Color3.fromRGB(202, 208, 216),
+	SubText                = Color3.fromRGB(110, 120, 134),
+	Border                 = Color3.fromRGB(36, 42, 52),
+	Hover                  = Color3.fromRGB(26, 31, 40),
+	Active                 = Color3.fromRGB(32, 39, 50),
+	ToggleOn               = Color3.fromRGB(88, 128, 168),
+	ToggleOff              = Color3.fromRGB(26, 31, 40),
+	SliderFill             = Color3.fromRGB(70, 104, 140),
+	DropdownBackground     = Color3.fromRGB(15, 18, 24),
+	NotificationBackground = Color3.fromRGB(17, 20, 27),
 	WindowShadow           = Color3.fromRGB(0, 0, 0),
-	Success                = Color3.fromRGB(80, 200, 120),
-	Warning                = Color3.fromRGB(235, 185, 70),
-	Error                  = Color3.fromRGB(235, 85, 85),
-	Info                   = Color3.fromRGB(90, 150, 245),
-	CornerRadius           = 6,
-	Padding                = 8,
-	FontSize               = 14,
+	Success                = Color3.fromRGB(96, 190, 130),
+	Warning                = Color3.fromRGB(225, 180, 90),
+	Error                  = Color3.fromRGB(220, 95, 95),
+	Info                   = Color3.fromRGB(96, 150, 210),
+	CornerRadius           = 3,
+	Padding                = 6,
+	FontSize               = 13,
 	Font                   = 2,
 	Transparency           = 0,
 	StrokeWeight           = 1,
@@ -214,6 +217,8 @@ THEMES.Dark = {
 
 THEMES.Light = {
 	Background             = Color3.fromRGB(244, 245, 248),
+	SectionBackground      = Color3.fromRGB(252, 253, 255),
+	TitleBar               = Color3.fromRGB(248, 249, 252),
 	Foreground             = Color3.fromRGB(255, 255, 255),
 	Accent                 = Color3.fromRGB(88, 80, 236),
 	AccentDim              = Color3.fromRGB(190, 186, 246),
@@ -837,75 +842,69 @@ end
 -- ---- TOGGLE ----------------------------------------------------------------
 local function makeToggle(section: any, opts: {[string]: any}): any
 	assert(type(opts) == "table", "CreateToggle: options table expected")
-	local c = newComponent(section, tostring(opts.Name or "Toggle"), 30)
+	local c = newComponent(section, tostring(opts.Name or "Toggle"), 22)
 	c.kind = "Toggle"
 	c._value = opts.Default == true
+	c._anim = c._value and 1 or 0
+	c._shownState = true
 
+	local BOX = 15
+	local box = compPanel(c, Z.Element)
+	local check1 = mk("Line", { Thickness = 2, ZIndex = Z.Element + 3 })
+	local check2 = mk("Line", { Thickness = 2, ZIndex = Z.Element + 3 })
+	table.insert(c._drawings, check1); table.insert(c._drawings, check2)
 	local label = compText(c, Z.ElementText, false)
 	label.Text = c.Name
-	local track = compPanel(c, Z.Element)
-	local knob = mk("Circle", { Filled = true, Thickness = 0, NumSides = 24, ZIndex = Z.Element + 2 })
-	table.insert(c._drawings, knob)
 
-	local TRACK_W, TRACK_H = 38, 18
 	local hot = compInteractive(c, { zindex = Z.Element, rect = c.rect })
 	local hovering = false
-	c._knobX = 0
 
-	local function knobTarget(): number
-		return c._value and 1 or 0
+	local function placeCheck()
+		local r = c.rect
+		local bx = r.x
+		local by = r.y + (c._height - BOX) / 2
+		check1.From = Vector2.new(bx + 3, by + BOX / 2)
+		check1.To   = Vector2.new(bx + BOX / 2 - 1, by + BOX - 4)
+		check2.From = Vector2.new(bx + BOX / 2 - 1, by + BOX - 4)
+		check2.To   = Vector2.new(bx + BOX - 3, by + 4)
 	end
 
-	local function placeKnob(alpha: number)
-		local x = c.rect.x + c.rect.w - TRACK_W
-		local y = c.rect.y + (c._height - TRACK_H) / 2
-		local r = TRACK_H / 2 - 2
-		knob.Radius = r
-		knob.Position = Vector2.new(
-			Util.lerp(x + r + 2, x + TRACK_W - r - 2, alpha),
-			y + TRACK_H / 2)
-	end
-
-	local function refresh(animate: boolean?)
+	local function refresh()
 		local th = T()
-		label.Color, label.Size = th.Text, th.FontSize
-		local trackColor = c._value and th.ToggleOn or th.ToggleOff
-		if hovering and not c._value then trackColor = th.Hover end
-		track:SetColors(trackColor, nil, 1 - th.Transparency)
-		knob.Color = c._value and Color3.new(1,1,1) or th.SubText
-		if animate then
-			tween(c, "knob", c._knobX, knobTarget(), 0.18, Ease.OutCubic, function(v)
-				c._knobX = v; placeKnob(v)
-			end)
-		else
-			c._knobX = knobTarget(); placeKnob(c._knobX)
-		end
+		label.Color, label.Size = (c._value and th.Text or th.SubText), th.FontSize
+		local base = hovering and th.Hover or th.ToggleOff
+		box:SetColors(base:Lerp(th.ToggleOn, c._anim), c._value and th.Accent or th.Border, 1 - th.Transparency)
+		local show = c._shownState and c._anim > 0.35
+		check1.Visible, check2.Visible = show, show
+		check1.Color, check2.Color = Color3.new(1, 1, 1), Color3.new(1, 1, 1)
 	end
 	c._refresh = refresh
 
 	hot.onHover = function(v) hovering = v; refresh() end
-	hot.onUp = function(inside)
-		if inside then c:Set(not c._value) end
-	end
+	hot.onUp = function(inside) if inside then c:Set(not c._value) end end
 
 	function c:Layout(x, y, w)
 		self.rect.x, self.rect.y, self.rect.w, self.rect.h = x, y, w, self._height
-		label.Position = Vector2.new(x, y + (self._height - T().FontSize) / 2)
-		local tx = x + w - TRACK_W
-		local ty = y + (self._height - TRACK_H) / 2
-		track:SetRadius(TRACK_H / 2)
-		track:SetRect(tx, ty, TRACK_W, TRACK_H)
-		placeKnob(c._knobX)
+		local by = y + (self._height - BOX) / 2
+		box:SetRadius(T().CornerRadius)
+		box:SetRect(x, by, BOX, BOX)
+		label.Position = Vector2.new(x + BOX + 7, y + (self._height - T().FontSize) / 2)
+		placeCheck()
+		refresh()
 	end
 	function c:ApplyTheme() refresh() end
 	function c:_setShown(v)
-		track:SetVisible(v); knob.Visible = v; label.Visible = v
+		c._shownState = v
+		box:SetVisible(v); label.Visible = v
 		hot._enabled = v; hot.visible = v
+		refresh()
 	end
 	function c:Get() return c._value end
 	function c:Set(v)
 		c._value = v and true or false
-		refresh(true)
+		tween(c, "anim", c._anim, c._value and 1 or 0, 0.15, Ease.OutCubic, function(a)
+			c._anim = a; refresh()
+		end)
 		if opts.Flag and c.window then c.window.Flags[opts.Flag] = c._value end
 		if opts.Callback then task.spawn(opts.Callback, c._value) end
 	end
@@ -923,7 +922,7 @@ local function makeSlider(section: any, opts: {[string]: any}): any
 	local step = tonumber(opts.Step) or 1
 	local suffix = tostring(opts.Suffix or "")
 
-	local c = newComponent(section, tostring(opts.Name or "Slider"), 42)
+	local c = newComponent(section, tostring(opts.Name or "Slider"), 36)
 	c.kind = "Slider"
 	c._value = Util.snap(tonumber(opts.Default) or min, min, max, step)
 
@@ -933,7 +932,7 @@ local function makeSlider(section: any, opts: {[string]: any}): any
 	local trackBG = compPanel(c, Z.Element)
 	local fill = compPanel(c, Z.Element + 2)
 
-	local BAR_H = 6
+	local BAR_H = 14
 	local hot = compInteractive(c, { zindex = Z.Element, rect = c.rect })
 	local hovering = false
 
@@ -944,14 +943,13 @@ local function makeSlider(section: any, opts: {[string]: any}): any
 	local function refresh()
 		local th = T()
 		label.Color, label.Size = th.Text, th.FontSize
-		valueText.Color, valueText.Size = th.SubText, th.FontSize - 1
-		valueText.Text = tostring(c._value) .. suffix
-		trackBG:SetColors(th.ToggleOff, nil, 1 - th.Transparency)
+		valueText.Color, valueText.Size = th.Text, th.FontSize - 2
+		valueText.Text = tostring(c._value) .. suffix .. "/" .. tostring(max) .. suffix
+		trackBG:SetColors(hovering and th.Hover or th.ToggleOff, th.Border, 1 - th.Transparency)
 		fill:SetColors(th.SliderFill, nil, 1 - th.Transparency)
-		-- place fill width
 		local r = c.rect
-		local barY = r.y + 26
-		fill:SetRect(r.x, barY, math.max(BAR_H, r.w * fraction()), BAR_H)
+		local barY = r.y + 18
+		fill:SetRect(r.x, barY, math.max(2, r.w * fraction()), BAR_H)
 	end
 	c._refresh = refresh
 
@@ -968,13 +966,13 @@ local function makeSlider(section: any, opts: {[string]: any}): any
 
 	function c:Layout(x, y, w)
 		self.rect.x, self.rect.y, self.rect.w, self.rect.h = x, y, w, self._height
-		label.Position = Vector2.new(x, y + 2)
-		valueText.Position = Vector2.new(x + w - 60, y + 2)
-		valueText.Center = false
-		local barY = y + 26
-		trackBG:SetRadius(BAR_H / 2)
+		label.Position = Vector2.new(x, y + 1)
+		local barY = y + 18
+		trackBG:SetRadius(2)
 		trackBG:SetRect(x, barY, w, BAR_H)
-		fill:SetRadius(BAR_H / 2)
+		fill:SetRadius(2)
+		valueText.Center = true
+		valueText.Position = Vector2.new(x + w / 2, barY + (BAR_H - (T().FontSize - 2)) / 2)
 		refresh()
 	end
 	function c:ApplyTheme() refresh() end
@@ -990,8 +988,7 @@ local function makeSlider(section: any, opts: {[string]: any}): any
 		if opts.Flag and c.window then c.window.Flags[opts.Flag] = c._value end
 		if opts.Callback then task.spawn(opts.Callback, c._value) end
 	end
-	-- right-align the value text
-	valueText.Center = false
+	valueText.Center = true
 	refresh()
 	if opts.Flag and c.window then c.window.Flags[opts.Flag] = c._value end
 	return c
@@ -1255,7 +1252,7 @@ local function makeDropdown(section: any, opts: {[string]: any}): any
 	local field = compPanel(c, Z.Element)
 	local valueText = compText(c, Z.ElementText, false)
 	local arrow = compText(c, Z.ElementText, true)
-	arrow.Text = "v"
+	arrow.Text = "+"
 
 	local hot = compInteractive(c, { zindex = Z.Element, rect = c.rect })
 	local hovering = false
@@ -1844,16 +1841,19 @@ end
 local Section = {}
 Section.__index = Section
 
-local function newSection(tab: any, name: string): any
+local function newSection(tab: any, name: string, side: string?): any
 	local self = setmetatable({}, Section)
 	self.tab = tab
 	self.window = tab.window
 	self.Name = name
+	self.side = (side == "Right") and "Right" or "Left"
 	self.elements = {}
 	self.panel = Panel.new(Z.Content)
-	self.header = mk("Text", { Size = T().FontSize, Font = T().Font, Color = T().SubText,
-		Outline = true, OutlineColor = Color3.new(0,0,0), ZIndex = Z.Content + 2 })
-	self.header.Text = name:upper()
+	-- a small fill behind the title that "breaks" the groupbox top border
+	self.titleBreak = mk("Square", { Filled = true, Thickness = 0, ZIndex = Z.Content + 2 })
+	self.header = mk("Text", { Size = T().FontSize, Font = T().Font, Color = T().Text,
+		Outline = true, OutlineColor = Color3.new(0,0,0), ZIndex = Z.Content + 3 })
+	self.header.Text = name
 	self._visible = false
 	registerThemed(self)
 	return self
@@ -1910,17 +1910,26 @@ function Section:Layout(x: number, y: number, w: number): number
 	local totalH = (cy - y) + pad - (#self.elements > 0 and 0 or pad)
 	if totalH < headerH + pad * 2 then totalH = headerH + pad * 2 end
 
+	-- groupbox: box starts at the vertical middle of the title; the title text
+	-- sits on the top border with a bg-colored break behind it.
+	local boxTop = y + math.floor(th.FontSize / 2)
 	self._rect = { x = x, y = y, w = w, h = totalH }
 	self.panel:SetRadius(th.CornerRadius)
-	self.panel:SetColors(th.Background, th.Border, 1 - th.Transparency)
-	self.panel:SetRect(x, y, w, totalH)
-	self.header.Position = Vector2.new(x + pad, y + 4)
+	self.panel:SetColors(th.SectionBackground, th.Border, 1 - th.Transparency)
+	self.panel:SetRect(x, boxTop, w, totalH - (boxTop - y))
+	local estW = #self.Name * (th.FontSize * 0.58) + 8
+	self.titleBreak.Color = th.Background
+	self.titleBreak.Transparency = 1
+	self.titleBreak.Position = Vector2.new(x + 8, boxTop - 1)
+	self.titleBreak.Size = Vector2.new(estW, 3)
+	self.header.Position = Vector2.new(x + 11, y)
 	return totalH
 end
 
 function Section:SetVisible(v: boolean)
 	self._visible = v
 	self.panel:SetVisible(v)
+	self.titleBreak.Visible = v
 	self.header.Visible = v
 	for _, el in ipairs(self.elements) do
 		el:_setShown(v and el._visible and not el._filtered)
@@ -1928,7 +1937,7 @@ function Section:SetVisible(v: boolean)
 end
 
 function Section:ApplyTheme()
-	self.header.Color = T().SubText
+	self.header.Color = T().Text
 	self.header.Size = T().FontSize
 	for _, el in ipairs(self.elements) do
 		if el.ApplyTheme then el:ApplyTheme() end
@@ -1941,6 +1950,7 @@ function Section:Destroy()
 	end
 	self.elements = {}
 	self.panel:Destroy()
+	destroyDrawing(self.titleBreak)
 	destroyDrawing(self.header)
 	unregisterThemed(self)
 	for i = #self.tab.sections, 1, -1 do
@@ -2010,8 +2020,8 @@ local function newTab(window: any, name: string): any
 	return self
 end
 
-function Tab:CreateSection(name: string): any
-	local s = newSection(self, tostring(name or "Section"))
+function Tab:CreateSection(name: string, side: string?): any
+	local s = newSection(self, tostring(name or "Section"), side)
 	table.insert(self.sections, s)
 	self.window:_relayout()
 	return s
@@ -2280,19 +2290,36 @@ function Window:_relayout()
 		tabX += tw + 4
 	end
 
-	-- content area: only the active tab's sections
+	-- content area: only the active tab's sections, laid out in two columns
+	-- (sections created with side "Right" go in the right column).
 	local contentY = tabY + TABBAR_H + th.Padding
 	local contentX = x + th.Padding
 	local contentW = w - th.Padding * 2
+	local gap = th.Padding
+	local colW = (contentW - gap) / 2
+	local leftX = contentX
+	local rightX = contentX + colW + gap
 	for _, tab in ipairs(self.tabs) do
 		local isActive = (tab == self.activeTab) and showBody
 		if isActive then
-			local cy = contentY
+			local hasRight = false
+			for _, sec in ipairs(tab.sections) do
+				if sec.side == "Right" then hasRight = true break end
+			end
+			local leftCY, rightCY = contentY, contentY
 			for _, sec in ipairs(tab.sections) do
 				sec._visible = true
-				local sh = sec:Layout(contentX, cy, contentW)
+				if hasRight and sec.side == "Right" then
+					local sh = sec:Layout(rightX, rightCY, colW)
+					rightCY += sh + th.Padding
+				elseif hasRight then
+					local sh = sec:Layout(leftX, leftCY, colW)
+					leftCY += sh + th.Padding
+				else
+					local sh = sec:Layout(contentX, leftCY, contentW)
+					leftCY += sh + th.Padding
+				end
 				sec:SetVisible(true)
-				cy += sh + th.Padding
 			end
 		else
 			tab:SetVisible(false)

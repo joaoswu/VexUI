@@ -1,142 +1,79 @@
 --[[
-    DrawingLibrary — full feature demo.
-    Loads the library straight from GitHub (raw) via loadstring, the standard
-    executor pattern. Run in a Drawing-capable environment.
+    VexUI — Abyss-style demo.
+    Loads the library straight from GitHub (raw) via loadstring.
+    Run in a Drawing-capable executor.
 
     Repo: https://github.com/joaoswu/VexUI
 ]]
 
-local URL = "https://raw.githubusercontent.com/joaoswu/VexUI/main/DrawingLibrary.lua"
+local URL = "https://raw.githubusercontent.com/joaoswu/VexUI/main/DrawingLibrary.lua?v=10"
 local Library = loadstring(game:HttpGet(URL))()
 
--- ── Create a window ────────────────────────────────────────────────────────
 local Window = Library:CreateWindow({
-	Title = "DrawingLibrary  •  Demo",
-	Size  = Vector2.new(540, 460),
-	Theme = "Dark",
+    Title = "Abyss V3",
+    Size  = Vector2.new(560, 480),
+    Theme = "Dark",
 })
 
--- ── Tab 1: every input component ───────────────────────────────────────────
+-- ── MAIN TAB ───────────────────────────────────────────────────────────────
 local Main = Window:CreateTab("Main")
 
-local Inputs = Main:CreateSection("Inputs")
+-- left column (side "Left" is the default)
+local Aim = Main:CreateSection("Aim Assist", "Left")
+Aim:CreateToggle({ Name = "Enabled", Default = false, Flag = "AimEnabled" })
+Aim:CreateSlider({ Name = "Aimbot FOV", Min = 0, Max = 250, Default = 100, Suffix = "°" })
+Aim:CreateSlider({ Name = "Smoothing", Min = 0, Max = 10, Default = 5 })
+Aim:CreateDropdown({ Name = "Smoothing Type", Options = { "Linear", "Eased", "Exponential" }, Default = "Linear" })
+Aim:CreateSlider({ Name = "Randomization", Min = 0, Max = 20, Default = 5 })
+Aim:CreateDropdown({ Name = "Hitscan Priority", Options = { "Head", "Torso", "Nearest" }, Default = "Head" })
+Aim:CreateKeybind({ Name = "Aimbot Key", Default = Enum.KeyCode.E })
+Aim:CreateToggle({ Name = "Target Prediction", Default = false })
 
-Inputs:CreateLabel({ Text = "Welcome — try every control below." })
+local Recoil = Main:CreateSection("Recoil Control", "Left")
+Recoil:CreateToggle({ Name = "Weapon RCS", Default = false })
+Recoil:CreateSlider({ Name = "Recoil Control X", Min = 0, Max = 100, Default = 10, Suffix = "%" })
+Recoil:CreateSlider({ Name = "Recoil Control Y", Min = 0, Max = 100, Default = 10, Suffix = "%" })
 
-Inputs:CreateButton({
-	Name = "Click Me",
-	Callback = function()
-		Library:Notify({ Title = "Button", Message = "You clicked the button!", Type = "success" })
-	end,
-})
+-- right column
+local Trigger = Main:CreateSection("Trigger Bot", "Right")
+Trigger:CreateToggle({ Name = "Enabled", Default = false })
+Trigger:CreateDropdown({ Name = "Hitboxes", Options = { "Head", "Torso", "Any" }, Default = "Head" })
+Trigger:CreateToggle({ Name = "Trigger When Aiming", Default = false })
+Trigger:CreateSlider({ Name = "Aim Percentage", Min = 1, Max = 100, Default = 1, Suffix = "%" })
 
-local toggle = Inputs:CreateToggle({
-	Name = "Enable Feature",
-	Default = false,
-	Flag = "FeatureEnabled",
-	Callback = function(v) print("[toggle]", v) end,
-})
+local Bullet = Main:CreateSection("Bullet Redirection", "Right")
+Bullet:CreateToggle({ Name = "Silent Aim", Default = false })
+Bullet:CreateSlider({ Name = "Silent Aim FOV", Min = 0, Max = 250, Default = 100, Suffix = "°" })
+Bullet:CreateSlider({ Name = "Hit Chance", Min = 0, Max = 100, Default = 30, Suffix = "%" })
+Bullet:CreateSlider({ Name = "Accuracy", Min = 0, Max = 100, Default = 90, Suffix = "%" })
+Bullet:CreateColorPicker({ Name = "Tracer Color", Default = Color3.fromRGB(88, 128, 168) })
 
-Inputs:CreateSlider({
-	Name = "FOV",
-	Min = 1, Max = 360, Default = 90, Step = 1, Suffix = "°",
-	Callback = function(v) print("[slider] fov", v) end,
-})
+-- ── VISUALS TAB ──────────────────────────────────────────────────────────────
+local Visuals = Window:CreateTab("Visuals")
+local Esp = Visuals:CreateSection("ESP", "Left")
+Esp:CreateSearchbar({ Placeholder = "search..." })
+Esp:CreateToggle({ Name = "Box ESP", Default = true })
+Esp:CreateToggle({ Name = "Name ESP", Default = false })
+Esp:CreateToggle({ Name = "Health Bars", Default = true })
+Esp:CreateSlider({ Name = "Box Thickness", Min = 1, Max = 5, Default = 2 })
 
-Inputs:CreateSlider({
-	Name = "Smoothness",
-	Min = 0, Max = 1, Default = 0.35, Step = 0.05,
-	Callback = function(v) print("[slider] smooth", v) end,
-})
+local World = Visuals:CreateSection("World", "Right")
+World:CreateToggle({ Name = "Fullbright", Default = false })
+World:CreateColorPicker({ Name = "Ambient", Default = Color3.fromRGB(120, 150, 190) })
 
-local dd = Inputs:CreateDropdown({
-	Name = "Mode",
-	Options = { "Off", "Silent", "Assist", "Legit", "Rage" },
-	Default = "Assist",
-	Search = true,
-	Callback = function(v) print("[dropdown]", v) end,
-})
-
-Inputs:CreateDropdown({
-	Name = "Targets",
-	Options = { "Head", "Torso", "Arms", "Legs", "Random" },
-	Default = { "Head", "Torso" },
-	Multi = true,
-	Callback = function(list) print("[multi]", table.concat(list, ", ")) end,
-})
-
-Inputs:CreateTextbox({
-	Name = "Username",
-	Placeholder = "enter name...",
-	Default = "",
-	Callback = function(text) print("[textbox]", text) end,
-})
-
-Inputs:CreateKeybind({
-	Name = "Toggle Menu",
-	Default = Enum.KeyCode.RightShift,
-	Callback = function() Window:Toggle() end,
-})
-
-Inputs:CreateColorPicker({
-	Name = "ESP Color",
-	Default = Color3.fromRGB(120, 110, 245),
-	Callback = function(c) print("[color]", c) end,
-})
-
--- A second column-style section to show grouping
-local Visuals = Main:CreateSection("Visuals")
-Visuals:CreateSearchbar({ Placeholder = "filter visuals..." })
-Visuals:CreateToggle({ Name = "Box ESP",     Default = true })
-Visuals:CreateToggle({ Name = "Name ESP",    Default = false })
-Visuals:CreateToggle({ Name = "Tracer Lines",Default = false })
-Visuals:CreateToggle({ Name = "Health Bars", Default = true })
-Visuals:CreateSlider({ Name = "Box Thickness", Min = 1, Max = 5, Default = 2, Step = 1 })
-
--- ── Tab 2: settings / theme switching ──────────────────────────────────────
+-- ── SETTINGS TAB ─────────────────────────────────────────────────────────────
 local Settings = Window:CreateTab("Settings")
-local Theme = Settings:CreateSection("Theme")
+local Theme = Settings:CreateSection("Theme", "Left")
+Theme:CreateDropdown({ Name = "Preset", Options = { "Dark", "Light" }, Default = "Dark",
+    Callback = function(name) Library:SetTheme(name) end })
+Theme:CreateColorPicker({ Name = "Accent", Default = Color3.fromRGB(88, 128, 168),
+    Callback = function(c) Library:SetTheme({ Accent = c, SliderFill = c, ToggleOn = c }) end })
+Theme:CreateButton({ Name = "Test Notification",
+    Callback = function() Library:Notify({ Title = "VexUI", Message = "It works!", Type = "success" }) end })
 
-Theme:CreateDropdown({
-	Name = "Preset",
-	Options = { "Dark", "Light" },
-	Default = "Dark",
-	Callback = function(name) Library:SetTheme(name) end,
-})
+local Menu = Settings:CreateSection("Menu", "Right")
+Menu:CreateKeybind({ Name = "Toggle UI", Default = Enum.KeyCode.RightShift,
+    Callback = function() Window:Toggle() end })
+Menu:CreateButton({ Name = "Unload", Callback = function() Library:Destroy() end })
 
-Theme:CreateColorPicker({
-	Name = "Accent",
-	Default = Color3.fromRGB(120, 110, 245),
-	Callback = function(c) Library:SetTheme({ Accent = c, SliderFill = c, ToggleOn = c, AccentDim = c }) end,
-})
-
-Theme:CreateButton({
-	Name = "Spawn Notifications",
-	Callback = function()
-		Library:Notify({ Title = "Info",    Message = "An informational toast.", Type = "info" })
-		task.wait(0.3)
-		Library:Notify({ Title = "Success", Message = "Operation completed.",     Type = "success" })
-		task.wait(0.3)
-		Library:Notify({ Title = "Warning", Message = "Be careful here.",          Type = "warning" })
-		task.wait(0.3)
-		Library:Notify({ Title = "Error",   Message = "Something went wrong.",      Type = "error" })
-	end,
-})
-
-local Misc = Settings:CreateSection("Misc")
-Misc:CreateButton({
-	Name = "Read Toggle State via :Get()",
-	Callback = function()
-		Library:Notify({ Title = "Flag", Message = "FeatureEnabled = " .. tostring(toggle:Get()) })
-	end,
-})
-Misc:CreateButton({
-	Name = "Set Dropdown to 'Rage' via :Set()",
-	Callback = function() dd:Set("Rage") end,
-})
-Misc:CreateButton({
-	Name = "Destroy UI",
-	Callback = function() Library:Destroy() end,
-})
-
-print("Demo loaded. Press RightShift to toggle the window.")
+print("VexUI loaded — press RightShift to toggle.")
